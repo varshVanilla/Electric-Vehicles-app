@@ -1,0 +1,214 @@
+-- MySQL Workbench Forward Engineering
+
+SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
+SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
+SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
+
+-- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Schema electric_vehicle_db
+-- -----------------------------------------------------
+
+-- -----------------------------------------------------
+-- Schema electric_vehicle_db
+-- -----------------------------------------------------
+CREATE SCHEMA IF NOT EXISTS `electric_vehicle_db` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci ;
+USE `electric_vehicle_db` ;
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`users`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`users` (
+  `user_id` INT NOT NULL AUTO_INCREMENT,
+  `full_name` VARCHAR(45) NOT NULL,
+  `email` VARCHAR(45) NOT NULL,
+  `password_hash` VARCHAR(255) NOT NULL,
+  `phone` VARCHAR(11) NULL DEFAULT NULL,
+  `role` VARCHAR(45) NOT NULL DEFAULT 'customer',
+  `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`user_id`),
+  UNIQUE INDEX `user_id_UNIQUE` (`user_id` ASC) VISIBLE,
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE)
+ENGINE = InnoDB
+AUTO_INCREMENT = 4
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`vehicles`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`vehicles` (
+  `vehicle_id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `registration_number` VARCHAR(20) NOT NULL,
+  `brand` VARCHAR(50) NOT NULL,
+  `model` VARCHAR(50) NOT NULL,
+  `manufacture_year` INT NULL DEFAULT NULL,
+  `mileage_km` INT NULL DEFAULT '0',
+  `fuel_type` VARCHAR(30) NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`vehicle_id`),
+  UNIQUE INDEX `registration_number` (`registration_number` ASC) VISIBLE,
+  INDEX `vehicles_ibfk_1` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `vehicles_ibfk_1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `electric_vehicle_db`.`users` (`user_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 3
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`appointments`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`appointments` (
+  `appointment_id` INT NOT NULL AUTO_INCREMENT,
+  `vehicle_id` INT NOT NULL,
+  `appointment_date` DATE NOT NULL,
+  `appointment_time` TIME NOT NULL,
+  `service_type` VARCHAR(100) NOT NULL,
+  `status` VARCHAR(30) NULL DEFAULT 'pending',
+  `notes` TEXT NULL DEFAULT NULL,
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`appointment_id`),
+  INDEX `vehicle_id` (`vehicle_id` ASC) VISIBLE,
+  CONSTRAINT `appointments_ibfk_1`
+    FOREIGN KEY (`vehicle_id`)
+    REFERENCES `electric_vehicle_db`.`vehicles` (`vehicle_id`))
+ENGINE = InnoDB
+AUTO_INCREMENT = 3
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`loyalty`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`loyalty` (
+  `loyalty_id` INT NOT NULL AUTO_INCREMENT,
+  `user_id` INT NOT NULL,
+  `points_balance` INT NULL DEFAULT '0',
+  `membership_tier` VARCHAR(30) NULL DEFAULT 'standard',
+  `updated_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`loyalty_id`),
+  UNIQUE INDEX `user_id` (`user_id` ASC) VISIBLE,
+  CONSTRAINT `loyalty_ibfk_1`
+    FOREIGN KEY (`user_id`)
+    REFERENCES `electric_vehicle_db`.`users` (`user_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`maintenance_rules`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`maintenance_rules` (
+  `rule_id` INT NOT NULL AUTO_INCREMENT,
+  `service_type` VARCHAR(100) NOT NULL,
+  `fuel_type` VARCHAR(30) NULL DEFAULT NULL,
+  `interval_km` INT NULL DEFAULT NULL,
+  `interval_months` INT NULL DEFAULT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  PRIMARY KEY (`rule_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`reminders`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`reminders` (
+  `reminder_id` INT NOT NULL AUTO_INCREMENT,
+  `vehicle_id` INT NOT NULL,
+  `reminder_type` VARCHAR(100) NOT NULL,
+  `message` TEXT NULL DEFAULT NULL,
+  `due_date` DATE NULL DEFAULT NULL,
+  `due_mileage_km` INT NULL DEFAULT NULL,
+  `status` VARCHAR(30) NULL DEFAULT 'pending',
+  `created_at` TIMESTAMP NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`reminder_id`),
+  INDEX `vehicle_id` (`vehicle_id` ASC) VISIBLE,
+  CONSTRAINT `reminders_ibfk_1`
+    FOREIGN KEY (`vehicle_id`)
+    REFERENCES `electric_vehicle_db`.`vehicles` (`vehicle_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`service_records`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`service_records` (
+  `service_id` INT NOT NULL AUTO_INCREMENT,
+  `vehicle_id` INT NOT NULL,
+  `appointment_id` INT NULL DEFAULT NULL,
+  `service_date` DATE NOT NULL,
+  `mileage_km` INT NULL DEFAULT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `total_cost` DECIMAL(10,2) NULL DEFAULT '0.00',
+  `technician_name` VARCHAR(100) NULL DEFAULT NULL,
+  PRIMARY KEY (`service_id`),
+  UNIQUE INDEX `appointment_id` (`appointment_id` ASC) VISIBLE,
+  INDEX `vehicle_id` (`vehicle_id` ASC) VISIBLE,
+  CONSTRAINT `service_records_ibfk_1`
+    FOREIGN KEY (`vehicle_id`)
+    REFERENCES `electric_vehicle_db`.`vehicles` (`vehicle_id`),
+  CONSTRAINT `service_records_ibfk_2`
+    FOREIGN KEY (`appointment_id`)
+    REFERENCES `electric_vehicle_db`.`appointments` (`appointment_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`service_items`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`service_items` (
+  `item_id` INT NOT NULL AUTO_INCREMENT,
+  `service_id` INT NOT NULL,
+  `item_name` VARCHAR(100) NOT NULL,
+  `description` TEXT NULL DEFAULT NULL,
+  `quantity` INT NULL DEFAULT '1',
+  `unit_price` DECIMAL(10,2) NOT NULL,
+  PRIMARY KEY (`item_id`),
+  INDEX `service_id` (`service_id` ASC) VISIBLE,
+  CONSTRAINT `service_items_ibfk_1`
+    FOREIGN KEY (`service_id`)
+    REFERENCES `electric_vehicle_db`.`service_records` (`service_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+-- -----------------------------------------------------
+-- Table `electric_vehicle_db`.`vehicle_parts`
+-- -----------------------------------------------------
+CREATE TABLE IF NOT EXISTS `electric_vehicle_db`.`vehicle_parts` (
+  `part_id` INT NOT NULL AUTO_INCREMENT,
+  `vehicle_id` INT NOT NULL,
+  `part_name` VARCHAR(100) NOT NULL,
+  `installation_date` DATE NULL DEFAULT NULL,
+  `last_replaced_date` DATE NULL DEFAULT NULL,
+  `expected_lifespan_km` INT NULL DEFAULT NULL,
+  `condition_status` VARCHAR(30) NULL DEFAULT 'good',
+  PRIMARY KEY (`part_id`),
+  INDEX `vehicle_id` (`vehicle_id` ASC) VISIBLE,
+  CONSTRAINT `vehicle_parts_ibfk_1`
+    FOREIGN KEY (`vehicle_id`)
+    REFERENCES `electric_vehicle_db`.`vehicles` (`vehicle_id`))
+ENGINE = InnoDB
+DEFAULT CHARACTER SET = utf8mb4
+COLLATE = utf8mb4_0900_ai_ci;
+
+
+SET SQL_MODE=@OLD_SQL_MODE;
+SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS;
+SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS;
